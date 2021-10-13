@@ -1,0 +1,24 @@
+%cd /content/drive/MyDrive/Blood_dataset
+from google.colab import files
+uploaded = files.upload()
+!ls blood_dataset.zip
+!unzip blood_dataset.zip
+from keras.preprocessing.image import ImageDataGenerator
+datagen=ImageDataGenerator(rescale=1/255)
+train_data=datagen.flow_from_directory('train', target_size=(128,128),batch_size=8, class_mode='categorical',seed=100,shuffle=True)
+val_data=datagen.flow_from_directory('valid', target_size=(128,128),batch_size=8, class_mode='categorical',seed=100,shuffle=False)
+test_data=datagen.flow_from_directory('test', target_size=(128,128),batch_size=8, class_mode='categorical',seed=100,shuffle=False)
+from tensorflow import keras
+from tensorflow.keras import layers
+input=keras.Input(shape=(128,128,3))
+x=layers.Flatten()(input)
+x=layers.Dense(16,activation='relu')(x)
+x=layers.Dense(16,activation='relu')(x)
+output=layers.Dense(2,activation='softmax')(x)
+my_model=keras.Model(input,output)
+my_model.summary()
+from tensorflow.keras import optimizers
+adam=optimizers.Adam(learning_rate=0.0001)
+my_model.compile(loss='categorical_crossentropy',optimizer=adam,metrics=['accuracy'])
+result=my_model.fit(train_data,epochs=30,validation_data=val_data)
+my_model.evaluate(test_data)
